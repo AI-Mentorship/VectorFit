@@ -10,7 +10,6 @@
     "web": "expo start --web",
     "lint": "expo lint"
   },
-  "type": "module",
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
     "@expo/metro-runtime": "~6.1.2",
