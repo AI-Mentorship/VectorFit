@@ -7,7 +7,7 @@ export default function RootLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#000000ff",
-        tabBarStyle: { height: 60, paddingBottom: 6 },
+        tabBarStyle: { height: 70, paddingBottom: 6 },
       }}
     >
       <Tabs.Screen
