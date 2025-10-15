@@ -7,7 +7,7 @@ import {
 export default function Index() {
   const [fontsLoaded] = useFonts({ SawarabiGothic_400Regular });
   const deviceHeight = useWindowDimensions().height;
-  const middleBoxHeight = (deviceHeight * 6) / 9;
+  const middleBoxHeight = (deviceHeight * 6.5) / 10;
   const lowerBoxHeight = (deviceHeight * 1) / 9;
   if (!fontsLoaded) {
     return (
