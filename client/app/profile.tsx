@@ -34,7 +34,7 @@ export default function Profile() {
         justifyContent: "flex-start",
         alignItems: "center",
         paddingTop: 60,
-        paddingHorizontal: 20,
+        paddingHorizontal: 30,
       }}
     >
       {/* Profile Pic */}
