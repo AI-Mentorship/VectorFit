@@ -75,7 +75,18 @@ export default function Profile() {
           marginBottom: 20,
         }}
       >
-        Name Here
+        O-I-I-A-I-O
+      </Text>
+
+      {/* I got bored */}
+      <Text style={{ fontSize: 20 }}>
+        O-i-i-a-i-o, o-i-i-i-a-i, o-i-i-a-i-o, o-i-i-i, o-i-i-i O-i-i-a-i-o,
+        o-i-i-i-a-i, o-i-i-a-i-o, o-i-i-i, o-i-i-i O-i-i-a-i-o, o-i-i-i-a-i,
+        o-i-i-a-i-o, o-i-i-i, o-i-i-i O-i-i-a-i-o, o-i-i-i-a-i, o-i-i-a-i-o,
+        o-i-i-i, o-i-i-i O-i-i-a-i-o, o-i-i-i-a, o-i-i-a-i-o, o-i-i-i, o-i-i-i
+        O-i-i-a-i-o, o-i-i-i-a, o-i-i-a-i-o, o-i-i-i, o-i-i-i O-i-i-a-i-o,
+        o-i-i-i-a, o-i-i-a-i-o, o-i-i-i, o-i-i-i O-i-i-a-i-o, o-i-i-i-a,
+        o-i-i-a-i-o, o-i-i-i, o-i-i-i
       </Text>
     </View>
   );
