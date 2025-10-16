@@ -7,7 +7,7 @@ import {
 export default function Index() {
   const [fontsLoaded] = useFonts({ SawarabiGothic_400Regular });
   const deviceHeight = useWindowDimensions().height;
-  const middleBoxHeight = (deviceHeight * 6.5) / 10;
+  const middleBoxHeight = (deviceHeight * 6.7) / 10;
   const lowerBoxHeight = (deviceHeight * 1) / 9;
   if (!fontsLoaded) {
     return (
@@ -52,12 +52,11 @@ export default function Index() {
           height: middleBoxHeight,
           borderRadius: 12,
           backgroundColor: "#e6e6e6",
-          marginTop: 12,
           padding: 12,
           justifyContent: "center",
         }}
       >
-        <Text>Middle placeholder box</Text>
+        <Text></Text>
       </View>
 
       {/* Placeholder Box: For the AI chatbox */}
@@ -70,7 +69,7 @@ export default function Index() {
           padding: 12,
           justifyContent: "center",
         }}>
-          <Text>Bottom placeholder box</Text>
+          <Text></Text>
       </View>
 
     </View>
