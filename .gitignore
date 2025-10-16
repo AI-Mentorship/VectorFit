@@ -137,3 +137,10 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+
+####### NON DEFAULT IGNORES:
+
+#Data from kaggle
+
+cv-server/data
