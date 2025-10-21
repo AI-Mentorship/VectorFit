@@ -139,8 +139,39 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 
-####### NON DEFAULT IGNORES:
+####### NON DEFAULT IGNORES #######
 
-#Data from kaggle
+# Python virtual environments
+venv/
+.venv/
+ENV/
+env/
 
-cv-server/data
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# PyTorch models (large files)
+*.pkl
+*.pth
+*.h5
+*.onnx
+
+# Kaggle datasets (DO NOT COMMIT LARGE DATA)
+cv-server/data/
+
+# Training outputs
+cv-server/checkpoints/
+cv-server/runs/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
