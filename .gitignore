@@ -141,3 +141,5 @@ vite.config.ts.timestamp-*
 Clothes_Dataset/
 
 cv-server/models
+cv-server/data
+cv-server/venv
