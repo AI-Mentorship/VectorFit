@@ -1,7 +1,26 @@
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { View, TouchableOpacity, StyleSheet, Platform } from "react-native";
 
 export default function RootLayout() {
+  const router = useRouter();
+
+  const CenterTabButton = ({ onPress }: any) => (
+    <TouchableOpacity
+      style={styles.centerContainer}
+      activeOpacity={0.85}
+      onPress={() => {
+        router.push("/create");
+        if (onPress) onPress();
+      }}
+    >
+      <View style={styles.centerButton}>
+        <Ionicons name="add" size={32}></Ionicons>
+      </View>
+    </TouchableOpacity>
+  );
+
   return (
     <Tabs
       screenOptions={{
@@ -29,6 +48,15 @@ export default function RootLayout() {
         }}
       />
       <Tabs.Screen
+        name="create"
+        options={{
+          title: "",
+          tabBarLabel: () => null,
+          tabBarIcon: () => null,
+          tabBarButton: (props) => <CenterTabButton {...props} />,
+        }}
+      />
+      <Tabs.Screen
         name="wardrobe"
         options={{
           title: "Wardrobe",
@@ -49,3 +77,20 @@ export default function RootLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  centerContainer: {
+    top: Platform.OS === "android" ? -20 : -28, // lift up so it overlaps the tab bar
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  centerButton: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: "#d2d9bd",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 2,
+  },
+});
