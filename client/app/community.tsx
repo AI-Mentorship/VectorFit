@@ -14,16 +14,20 @@ export default function Community() {
         flex: 1,
         justifyContent: "center",
         // alignItems: "center",
-        paddingTop: 60,
+        paddingTop: 30,
         paddingHorizontal: 20,
       }}
     >
       {/* Greeting */}
-      <Text style={{
-        fontSize: 24,
-        fontWeight: "800",
-        marginBottom: 8,
-      }}>
+      <Text
+        style={{
+          fontSize: 24,
+          fontWeight: "800",
+          marginBottom: 8,
+          marginLeft: 12,
+          fontFamily: "SawarabiGothic_400Regular",
+        }}
+      >
         Community
       </Text>
       {/* Community Page */}
