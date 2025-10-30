@@ -33,7 +33,6 @@ export default function Index() {
       </View>
     );
   }
-
   return (
     <View
       style={{
@@ -44,31 +43,19 @@ export default function Index() {
         paddingHorizontal: 20,
       }}
     >
-      {/* Top Box Greeting */}
-      <Text
-        style={{
-          fontSize: 24,
-          fontWeight: "800",
-          marginBottom: 12,
-          marginLeft: 12,
-          fontFamily: "SawarabiGothic_400Regular",
-        }}
-      >
-        Welcome, User
-      </Text>
-
-      {/* Placeholder box: For displaying outfits */}
-      <View
-        style={{
-          height: middleBoxHeight,
-          borderRadius: 12,
-          backgroundColor: "#e6e6e6",
-          padding: 12,
-          justifyContent: "center",
-        }}
-      >
-        <Text></Text>
-      </View>
+      <ScrollView>
+        {/* Top Box Greeting */}
+        <Text
+          style={{
+            fontSize: 24,
+            fontWeight: "800",
+            marginBottom: 12,
+            marginLeft: 12,
+            fontFamily: "SawarabiGothic_400Regular",
+          }}
+        >
+          Welcome, User
+        </Text>
 
       {/* Placeholder Box: For the AI chatbox */}
       <KeyboardAvoidingView
