@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from "react-native";
 import {
   useFonts,
@@ -57,72 +58,73 @@ export default function Index() {
           Welcome, User
         </Text>
 
-      {/* Placeholder Box: For the AI chatbox */}
-      <KeyboardAvoidingView
-        style={{
-          height: lowerBoxHeight,
-          borderRadius: 12,
-          backgroundColor: "#e6e6e6",
-          marginTop: 12,
-          padding: 8,
-          justifyContent: "center",
-        }}
-      >
-        <View
+        {/* Placeholder Box: For the AI chatbox */}
+        <KeyboardAvoidingView
           style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 8,
+            height: lowerBoxHeight,
+            borderRadius: 12,
+            backgroundColor: "#e6e6e6",
+            marginTop: 12,
+            padding: 8,
+            justifyContent: "center",
           }}
         >
-          <TextInput
-            value={prompt}
-            onChangeText={setPrompt}
-            placeholder="What are we wearing today?"
-            placeholderTextColor="#666"
+          <View
             style={{
-              flex: 1,
-              height: 44,
-              paddingHorizontal: 12,
-              borderRadius: 8,
-              backgroundColor: "#fff",
-            }}
-            returnKeyType="send"
-            onSubmitEditing={() => {
-              if (!prompt.trim()) return;
-              console.log("Sending prompt:", prompt);
-              setPrompt("");
-            }}
-            autoCorrect={false}
-          />
-
-          <TouchableOpacity
-            onPress={() => {
-              if (!prompt.trim()) return;
-              console.log("Sending prompt:", prompt);
-              setPrompt("");
-            }}
-            style={{
-              height: 44,
-              paddingHorizontal: 14,
-              borderRadius: 8,
-              backgroundColor: "#333",
-              justifyContent: "center",
+              flexDirection: "row",
               alignItems: "center",
+              gap: 8,
             }}
           >
-            <Text
+            <TextInput
+              value={prompt}
+              onChangeText={setPrompt}
+              placeholder="What are we wearing today?"
+              placeholderTextColor="#666"
               style={{
-                color: "#fff",
-                fontWeight: "600",
-                fontFamily: "SawarabiGothic_400Regular",
+                flex: 1,
+                height: 44,
+                paddingHorizontal: 12,
+                borderRadius: 8,
+                backgroundColor: "#fff",
+              }}
+              returnKeyType="send"
+              onSubmitEditing={() => {
+                if (!prompt.trim()) return;
+                console.log("Sending prompt:", prompt);
+                setPrompt("");
+              }}
+              autoCorrect={false}
+            />
+
+            <TouchableOpacity
+              onPress={() => {
+                if (!prompt.trim()) return;
+                console.log("Sending prompt:", prompt);
+                setPrompt("");
+              }}
+              style={{
+                height: 44,
+                paddingHorizontal: 14,
+                borderRadius: 8,
+                backgroundColor: "#333",
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
-              Send
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+              <Text
+                style={{
+                  color: "#fff",
+                  fontWeight: "600",
+                  fontFamily: "SawarabiGothic_400Regular",
+                }}
+              >
+                Send
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </ScrollView>
     </View>
   );
 }
