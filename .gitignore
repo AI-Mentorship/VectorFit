@@ -137,3 +137,9 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+Clothes_Dataset/
+
+cv-server/models
+cv-server/data
+cv-server/venv
