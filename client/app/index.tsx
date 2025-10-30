@@ -1,4 +1,4 @@
-import { Text, View, useWindowDimensions } from "react-native";
+import { ScrollView, Text, View, useWindowDimensions } from "react-native";
 import {
   useFonts,
   SawarabiGothic_400Regular,
@@ -22,7 +22,6 @@ export default function Index() {
       </View>
     );
   }
-
   return (
     <View
       style={{
@@ -33,45 +32,47 @@ export default function Index() {
         paddingHorizontal: 20,
       }}
     >
-      {/* Top Box Greeting */}
-      <Text
-        style={{
-          fontSize: 24,
-          fontWeight: "800",
-          marginBottom: 12,
-          marginLeft: 12,
-          fontFamily: "SawarabiGothic_400Regular",
-        }}
-      >
-        Welcome, User
-      </Text>
+      <ScrollView>
+        {/* Top Box Greeting */}
+        <Text
+          style={{
+            fontSize: 24,
+            fontWeight: "800",
+            marginBottom: 12,
+            marginLeft: 12,
+            fontFamily: "SawarabiGothic_400Regular",
+          }}
+        >
+          Welcome, User
+        </Text>
 
-      {/* Placeholder box: For displaying outfits */}
-      <View
-        style={{
-          height: middleBoxHeight,
-          borderRadius: 12,
-          backgroundColor: "#e6e6e6",
-          padding: 12,
-          justifyContent: "center",
-        }}
-      >
-        <Text></Text>
-      </View>
-
-      {/* Placeholder Box: For the AI chatbox */}
-      <View
-        style={{
-          height: lowerBoxHeight,
-          borderRadius: 12,
-          backgroundColor: "#e6e6e6",
-          marginTop: 12,
-          padding: 12,
-          justifyContent: "center",
-        }}>
+        {/* Placeholder box: For displaying outfits */}
+        <View
+          style={{
+            height: middleBoxHeight,
+            borderRadius: 12,
+            backgroundColor: "#e6e6e6",
+            padding: 12,
+            justifyContent: "center",
+          }}
+        >
           <Text></Text>
-      </View>
+        </View>
 
+        {/* Placeholder Box: For the AI chatbox */}
+        <View
+          style={{
+            height: lowerBoxHeight,
+            borderRadius: 12,
+            backgroundColor: "#e6e6e6",
+            marginTop: 12,
+            padding: 12,
+            justifyContent: "center",
+          }}
+        >
+          <Text></Text>
+        </View>
+      </ScrollView>
     </View>
   );
 }
