@@ -57,7 +57,16 @@ export default function Index() {
         >
           Welcome, User
         </Text>
-
+        {/* Placeholder box: For displaying outfits */}
+        <View
+          style={{
+            height: middleBoxHeight,
+            borderRadius: 12,
+            backgroundColor: "#e6e6e6",
+            padding: 12,
+            justifyContent: "center",
+          }}
+        ></View>
         {/* Placeholder Box: For the AI chatbox */}
         <KeyboardAvoidingView
           style={{
