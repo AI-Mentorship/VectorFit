@@ -84,74 +84,106 @@ print(f"  Color: {metadata['dominant_color']}")
 import os
 import uuid
 
-def embed_cv_json(cv_json, item_id=None):
-    """Embed a CV JSON object into Pinecone.
 
-    - Reads PINECONE_API_KEY and optional PINECONE_INDEX from environment.
-    - If PINECONE_DISABLED=1 is set, embedding is skipped (useful for local tests).
-    - Accepts color keys in either `dominantcolor` or `dominant_color` formats.
+class PineconeEmbedder:
+    """Namespace class that wraps Pinecone embedding/upsert logic.
 
-    Returns the upserted item id on success. Raises RuntimeError on configuration/import errors.
+    Usage:
+      from embed import embedder
+      embedder.embed(cv_json)
+
+    The class lazily imports Pinecone and reads configuration from environment
+    variables: PINECONE_API_KEY, PINECONE_INDEX, PINECONE_EMBED_MODEL, PINECONE_DISABLED.
     """
 
-    # generate a stable id if none provided
-    if item_id is None:
-        item_id = f"item_{uuid.uuid4().hex}"
+    def __init__(self, api_key=None, index_name=None, model_name=None, disabled=None):
+        # allow explicit params or fallback to env
+        self.api_key = api_key or os.getenv('PINECONE_API_KEY')
+        self.index_name = index_name or os.getenv('PINECONE_INDEX', 'closetsensei')
+        self.model_name = model_name or os.getenv('PINECONE_EMBED_MODEL', 'llama-text-embed-v2')
+        self.disabled = (disabled if disabled is not None else os.getenv('PINECONE_DISABLED') == '1')
+        self._pc = None
+        self._index = None
 
-    # Support a test mode where embedding is skipped
-    if os.getenv('PINECONE_DISABLED') == '1':
-        print("PINECONE_DISABLED=1 -> skipping embedding (dry run).")
+    def _ensure_client(self):
+        if self.disabled:
+            return
+        if self._pc is None:
+            try:
+                from pinecone import Pinecone
+            except Exception as e:
+                raise RuntimeError(f"pinecone library import failed: {e}")
+
+            if not self.api_key:
+                raise RuntimeError("PINECONE_API_KEY environment variable not set")
+
+            self._pc = Pinecone(api_key=self.api_key)
+            self._index = self._pc.Index(self.index_name)
+
+    def embed(self, cv_json, item_id=None):
+        # generate id
+        if item_id is None:
+            item_id = f"item_{uuid.uuid4().hex}"
+
+        if self.disabled:
+            print("PINECONE_DISABLED=1 -> skipping embedding (dry run).")
+            return item_id
+
+        # ensure Pinecone client/index are available
+        self._ensure_client()
+
+        # robustly extract predicted class
+        clothing = cv_json.get('clothing', {})
+        predicted_class = clothing.get('predicted_class') or clothing.get('predicted') or clothing.get('class') or 'Unknown'
+
+        # robustly extract dominant color (accept both dominantcolor and dominant_color)
+        colors = cv_json.get('colors', {})
+        dominant = colors.get('dominantcolor') or colors.get('dominant_color') or {}
+        dominant_name = dominant.get('name') or dominant.get('colour') or 'Unknown'
+        dominant_rgb = dominant.get('rgb') or dominant.get('RGB') or []
+
+        text_to_embed = f"{predicted_class} {dominant_name}".strip()
+
+        # generate embedding via Pinecone inference
+        embedding_response = self._pc.inference.embed(
+            model=self.model_name,
+            inputs=[text_to_embed],
+            parameters={"input_type": "passage"}
+        )
+
+        embedding = embedding_response[0].values
+
+        # prepare metadata
+        metadata = {
+            'type': predicted_class,
+            'confidence': clothing.get('confidence'),
+            'dominant_color': dominant_name,
+            'dominant_color_rgb': str(dominant_rgb)
+        }
+
+        # upsert vector
+        self._index.upsert(vectors=[{
+            'id': item_id,
+            'values': embedding,
+            'metadata': metadata
+        }])
+
+        print(f"✓ Embedded {item_id}: {text_to_embed}")
         return item_id
 
-    # lazy import to avoid import errors when pinecone isn't installed
-    try:
-        from pinecone import Pinecone
-    except Exception as e:
-        raise RuntimeError(f"pinecone library import failed: {e}")
 
-    api_key = os.getenv('PINECONE_API_KEY')
-    if not api_key:
-        raise RuntimeError("PINECONE_API_KEY environment variable not set")
+# module-level default namespace instance
+embedder = PineconeEmbedder()
 
-    pc = Pinecone(api_key=api_key)
-    index_name = os.getenv('PINECONE_INDEX', 'closetsensei')
-    index = pc.Index(index_name)
 
-    # robustly extract predicted class
-    clothing = cv_json.get('clothing', {})
-    predicted_class = clothing.get('predicted_class') or clothing.get('predicted') or clothing.get('class') or 'Unknown'
+def embed_cv_json(cv_json, item_id=None):
+    """Backward-compatible wrapper that calls the module-level `embedder`.
 
-    # robustly extract dominant color (accept both dominantcolor and dominant_color)
-    colors = cv_json.get('colors', {})
-    dominant = colors.get('dominantcolor') or colors.get('dominant_color') or {}
-    dominant_name = dominant.get('name') or dominant.get('colour') or 'Unknown'
-    dominant_rgb = dominant.get('rgb') or dominant.get('RGB') or []
+    Prefer using `embedder.embed(...)` for namespaced access.
+    """
+    return embedder.embed(cv_json, item_id=item_id)
 
-    text_to_embed = f"{predicted_class} {dominant_name}".strip()
 
-    # generate embedding via Pinecone inference
-    embedding_response = pc.inference.embed(
-        model=os.getenv('PINECONE_EMBED_MODEL', 'llama-text-embed-v2'),
-        inputs=[text_to_embed],
-        parameters={"input_type": "passage"}
-    )
+__all__ = ["PineconeEmbedder", "embedder", "embed_cv_json"]
 
-    embedding = embedding_response[0].values
 
-    # prepare metadata
-    metadata = {
-        'type': predicted_class,
-        'confidence': clothing.get('confidence'),
-        'dominant_color': dominant_name,
-        'dominant_color_rgb': str(dominant_rgb)
-    }
-
-    # upsert vector
-    index.upsert(vectors=[{
-        'id': item_id,
-        'values': embedding,
-        'metadata': metadata
-    }])
-
-    print(f"✓ Embedded {item_id}: {text_to_embed}")
-    return item_id
