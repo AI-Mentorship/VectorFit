@@ -20,6 +20,7 @@ const createPreferences = async (req, res) => {
     }
 };
 
+
 const updatePreferences = async (req, res) => {
     try {
         const { id } = req.params;
