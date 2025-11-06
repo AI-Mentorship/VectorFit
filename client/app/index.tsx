@@ -184,93 +184,95 @@ export default function Index() {
       <Modal
         visible={isChatModalVisible}
         animationType="slide"
-        presentationStyle="pageSheet"
+        presentationStyle="fullScreen"
         onRequestClose={() => setIsChatModalVisible(false)}
       >
         <SafeAreaView style={styles.modalContainer}>
-          {/* Chat Header */}
-          <View style={styles.chatHeader}>
-            <TouchableOpacity
-              onPress={() => setIsChatModalVisible(false)}
-              style={styles.closeButton}
-            >
-              <Ionicons name="close" size={28} color="#333" />
-            </TouchableOpacity>
-            <Text style={styles.chatHeaderTitle}>Outfit Assistant</Text>
-            <View style={{ width: 28 }} />
-          </View>
-
-          {/* Messages */}
-          <ScrollView
-            style={styles.messagesContainer}
-            contentContainerStyle={styles.messagesContent}
-            showsVerticalScrollIndicator={false}
+          <KeyboardAvoidingView
+            behavior="padding"
+            style={{ flex: 1 }}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
           >
-            {messages.length === 0 ? (
-              <View style={styles.emptyState}>
-                <Ionicons name="chatbubbles-outline" size={64} color="#ccc" />
-                <Text style={styles.emptyStateText}>
-                  Start a conversation to get outfit recommendations!
-                </Text>
-              </View>
-            ) : (
-              messages.map((message) => (
-                <View
-                  key={message.id}
-                  style={[
-                    styles.messageBubble,
-                    message.isUser
-                      ? styles.userMessage
-                      : styles.aiMessage,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.messageText,
-                      message.isUser && styles.userMessageText,
-                    ]}
-                  >
-                    {message.text}
+            {/* Chat Header */}
+            <View style={styles.chatHeader}>
+              <TouchableOpacity
+                onPress={() => setIsChatModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={28} color="#333" />
+              </TouchableOpacity>
+              <Text style={styles.chatHeaderTitle}>Outfit Assistant</Text>
+              <View style={{ width: 28 }} />
+            </View>
+
+            {/* Messages */}
+            <ScrollView
+              style={styles.messagesContainer}
+              contentContainerStyle={styles.messagesContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {messages.length === 0 ? (
+                <View style={styles.emptyState}>
+                  <Ionicons name="chatbubbles-outline" size={64} color="#ccc" />
+                  <Text style={styles.emptyStateText}>
+                    Start a conversation to get outfit recommendations!
                   </Text>
                 </View>
-              ))
-            )}
-          </ScrollView>
+              ) : (
+                messages.map((message) => (
+                  <View
+                    key={message.id}
+                    style={[
+                      styles.messageBubble,
+                      message.isUser
+                        ? styles.userMessage
+                        : styles.aiMessage,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.messageText,
+                        message.isUser && styles.userMessageText,
+                      ]}
+                    >
+                      {message.text}
+                    </Text>
+                  </View>
+                ))
+              )}
+            </ScrollView>
 
-          {/* Chat Input */}
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
-            style={styles.inputContainer}
-          >
-            <View style={styles.inputWrapper}>
-              <TextInput
-                value={prompt}
-                onChangeText={setPrompt}
-                placeholder="What are we wearing today?"
-                placeholderTextColor="#666"
-                style={styles.chatInput}
-                returnKeyType="send"
-                onSubmitEditing={handleSendMessage}
-                autoCorrect={false}
-                multiline
-                maxLength={500}
-              />
-
-              <TouchableOpacity
-                onPress={handleSendMessage}
-                style={[
-                  styles.sendButton,
-                  !prompt.trim() && styles.sendButtonDisabled,
-                ]}
-                disabled={!prompt.trim()}
-              >
-                <Ionicons
-                  name="send"
-                  size={20}
-                  color={prompt.trim() ? "#fff" : "#999"}
+            {/* Chat Input */}
+            <View style={styles.inputContainer}>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  value={prompt}
+                  onChangeText={setPrompt}
+                  placeholder="What are we wearing today?"
+                  placeholderTextColor="#666"
+                  style={styles.chatInput}
+                  returnKeyType="send"
+                  onSubmitEditing={handleSendMessage}
+                  autoCorrect={false}
+                  multiline
+                  maxLength={500}
                 />
-              </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={handleSendMessage}
+                  style={[
+                    styles.sendButton,
+                    !prompt.trim() && styles.sendButtonDisabled,
+                  ]}
+                  disabled={!prompt.trim()}
+                >
+                  <Ionicons
+                    name="send"
+                    size={20}
+                    color={prompt.trim() ? "#fff" : "#999"}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </KeyboardAvoidingView>
         </SafeAreaView>
