@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
 } from "react-native";
 import {
   useFonts,
@@ -50,7 +51,7 @@ export default function Index() {
           style={{
             fontSize: 24,
             fontWeight: "800",
-            marginBottom: 12,
+            marginBottom: 16,
             marginLeft: 12,
             fontFamily: "SawarabiGothic_400Regular",
           }}
@@ -63,10 +64,21 @@ export default function Index() {
             height: middleBoxHeight,
             borderRadius: 12,
             backgroundColor: "#e6e6e6",
-            padding: 12,
-            justifyContent: "center",
+            padding: 16,
           }}
-        ></View>
+        >
+          <Text style={styles.sectionTitle}>Recommended outfits for today</Text>
+          <View style={styles.outfitGrid}>
+            {[1, 2, 3, 4].map((outfitNumber) => (
+              <View key={outfitNumber} style={styles.outfitContainer}>
+                <View style={styles.outfitDisplayCard}>
+                  {/* Empty display container */}
+                </View>
+                <Text style={styles.outfitLabel}>Outfit {outfitNumber}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
         {/* Placeholder Box: For the AI chatbox */}
         <KeyboardAvoidingView
           style={{
@@ -137,3 +149,43 @@ export default function Index() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#333",
+    marginBottom: 16,
+    fontFamily: "SawarabiGothic_400Regular",
+  },
+  outfitGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  outfitContainer: {
+    width: "48%",
+    marginBottom: 16,
+  },
+  outfitDisplayCard: {
+    aspectRatio: 0.8,
+    backgroundColor: "white",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e1e5e9",
+    marginBottom: 8,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+  },
+  outfitLabel: {
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+    fontFamily: "SawarabiGothic_400Regular",
+  },
+});
