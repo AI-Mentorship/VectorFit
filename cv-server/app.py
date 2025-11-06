@@ -3,6 +3,8 @@
 
 from flask import Flask, request, jsonify
 from processing import load_model, process_image
+# import embedding helper
+from embed import embed_cv_json
 
 app = Flask(__name__)
 
@@ -34,9 +36,20 @@ def predict():
         
         # Process it (prediction + colors)
         result = process_image(image_bytes)
-        
+
+        # If processing succeeded, attempt to embed the JSON into Pinecone
+        if result.get('success'):
+            try:
+                # embed_cv_json will generate an ID if not provided
+                item_id = embed_cv_json(result)
+                # attach embed id to response for debugging/tracking
+                result['embedded_id'] = item_id
+            except Exception as e:
+                # Don't fail the request if embedding fails; log into response
+                result['embed_error'] = str(e)
+
         # Return JSON response
-        return jsonify(result), 200 if result['success'] else 500
+        return jsonify(result), 200 if result.get('success') else 500
     
     except Exception as e:
         return jsonify({
