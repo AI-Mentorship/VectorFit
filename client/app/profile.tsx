@@ -47,7 +47,7 @@ export default function Profile() {
         backgroundColor: theme.backgroundColor,
       }}
       contentContainerStyle={{
-        paddingTop: 60,
+        paddingTop: 100,
         paddingHorizontal: 30,
         paddingBottom: 40,
       }}

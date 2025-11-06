@@ -26,7 +26,7 @@ export default function RootLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#000000ff",
-        tabBarStyle: { height: 70, paddingBottom: 6 },
+        tabBarStyle: { height: 80, paddingBottom: Platform.OS === "ios" ? 0 : 6, paddingTop: 6},
       }}
     >
       <Tabs.Screen
@@ -80,7 +80,7 @@ export default function RootLayout() {
 
 const styles = StyleSheet.create({
   centerContainer: {
-    top: Platform.OS === "android" ? -20 : -28, // lift up so it overlaps the tab bar
+    top: Platform.OS === "android" ? -20 : -20, 
     justifyContent: "center",
     alignItems: "center",
   },
