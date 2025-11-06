@@ -73,12 +73,13 @@ export default function Community() {
       {/* Header */}
       <Text
         style={{
-          fontSize: 24,
-          fontWeight: "800",
+          fontSize: 28,
+          fontWeight: "bold",
           marginBottom: 16,
           marginLeft: 12,
           marginTop: 20,
-          fontFamily: "SawarabiGothic_400Regular",
+          // fontFamily: "SawarabiGothic_400Regular",
+
         }}
       >
         Community

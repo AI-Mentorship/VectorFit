@@ -88,11 +88,11 @@ export default function Index() {
         {/* Top Box Greeting */}
         <Text
           style={{
-            fontSize: 24,
-            fontWeight: "800",
+            fontSize: 28,
+            fontWeight: "bold",
             marginBottom: 16,
             marginLeft: 12,
-            fontFamily: "SawarabiGothic_400Regular",
+            // fontFamily: "SawarabiGothic_400Regular",
           }}
         >
           Welcome, User
