@@ -2,9 +2,11 @@ import { Tabs, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { View, TouchableOpacity, StyleSheet, Platform } from "react-native";
+import { ThemeProvider, useTheme } from "../contexts/ThemeContext";
 
-export default function RootLayout() {
+function TabsContent() {
   const router = useRouter();
+  const { theme } = useTheme();
 
   const CenterTabButton = ({ onPress }: any) => (
     <TouchableOpacity
@@ -16,7 +18,7 @@ export default function RootLayout() {
       }}
     >
       <View style={styles.centerButton}>
-        <Ionicons name="add" size={32}></Ionicons>
+        <Ionicons name="add" size={32} color="#000" />
       </View>
     </TouchableOpacity>
   );
@@ -25,8 +27,15 @@ export default function RootLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#000000ff",
-        tabBarStyle: { height: 80, paddingBottom: Platform.OS === "ios" ? 0 : 6, paddingTop: 6},
+        tabBarActiveTintColor: theme.primary,
+        tabBarInactiveTintColor: theme.secondaryText,
+        tabBarStyle: {
+          height: 80,
+          paddingBottom: Platform.OS === "ios" ? 0 : 6,
+          paddingTop: 6,
+          backgroundColor: theme.cardBackground,
+          borderTopColor: theme.borderColor,
+        },
       }}
     >
       <Tabs.Screen
@@ -78,9 +87,17 @@ export default function RootLayout() {
   );
 }
 
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <TabsContent />
+    </ThemeProvider>
+  );
+}
+
 const styles = StyleSheet.create({
   centerContainer: {
-    top: Platform.OS === "android" ? -20 : -20, 
+    top: Platform.OS === "android" ? -20 : -20,
     justifyContent: "center",
     alignItems: "center",
   },
