@@ -36,15 +36,15 @@ def predict():
         result = process_image(image_bytes)
         
         if result['success']:
-            print("\n✅ PREDICTION SUCCESS")
+            print("\nPREDICTION SUCCESS")
             print("-" * 60)
-            print(f"🏷️  Clothing Type: {result['clothing']['predicted_class']}")
-            print(f"📊 Confidence: {result['clothing']['confidence']:.2f}%")
+            print(f"Clothing Type: {result['clothing']['predicted_class']}")
+            print(f"Confidence: {result['clothing']['confidence']:.2f}%")
             print("\nTop 3 Predictions:")
             for i, pred in enumerate(result['clothing']['top_predictions'][:3], 1):
                 print(f"  {i}. {pred['class']}: {pred['confidence']:.2f}%")
             
-            print(f"\n🎨 Dominant Color: {result['colors']['dominant_color']['name']}")
+            print(f"\nDominant Color: {result['colors']['dominant_color']['name']}")
             print(f"   RGB: {result['colors']['dominant_color']['rgb']}")
             
             print("\nColor Palette:")
@@ -53,16 +53,16 @@ def predict():
                 percentage_str = f" ({color['percentage']:.1f}%)" if 'percentage' in color else ""
                 print(f"  {i}. {color['name']}: RGB{tuple(color['rgb'])}{percentage_str}")
             
-            print("\n📋 Full JSON Response:")
+            print("\nFull JSON Response:")
             print(json.dumps(result, indent=2))
             print("=" * 60 + "\n")
         else:
-            print(f"\n❌ PREDICTION FAILED: {result.get('error', 'Unknown error')}\n")
+            print(f"\nPREDICTION FAILED: {result.get('error', 'Unknown error')}\n")
         
         return jsonify(result), 200 if result['success'] else 500
     
     except Exception as e:
-        print(f"\n❌ ERROR processing request: {str(e)}\n")
+        print(f"\nERROR processing request: {str(e)}\n")
         import traceback
         traceback.print_exc()  # This will show the full error trace
         return jsonify({
@@ -72,7 +72,7 @@ def predict():
 
 if __name__ == "__main__":
     print("=" * 50)
-    print("🚀 Starting Flask Server...")
+    print("Starting Flask Server...")
     print("=" * 50)
     
     if load_model():
