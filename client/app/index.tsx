@@ -175,7 +175,7 @@ export default function Index() {
                   height: 44,
                   paddingHorizontal: 14,
                   borderRadius: 8,
-                  backgroundColor: theme.primary,
+                  backgroundColor: "#333",
                   justifyContent: "center",
                   alignItems: "center",
                 }}

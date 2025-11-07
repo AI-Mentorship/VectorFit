@@ -40,7 +40,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     cardBackground: isDarkMode ? "#2a2a2a" : "#f5f5f5",
     borderColor: isDarkMode ? "#444444" : "#e0e0e0",
     secondaryText: isDarkMode ? "#888888" : "#666666",
-    primary: "#4f46e5",
+    primary: isDarkMode ? "#d6d6d6ff" : "#000000ff",
   };
 
   return (

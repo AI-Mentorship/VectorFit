@@ -9,11 +9,9 @@ import {
   Alert,
 } from "react-native";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
-import { useTheme } from "../contexts/ThemeContext";
 
 export default function Create() {
   console.log("create page has been reached"); // debugging log
-  const { theme } = useTheme();
 
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState<CameraType>("back");
@@ -21,34 +19,25 @@ export default function Create() {
   const [isUploading, setIsUploading] = useState(false);
   const cameraRef = useRef<CameraView>(null);
 
-  useEffect(() => {
-    console.log("Create component mounted");
-  }, []);
+  // TO DO: REPLACE w/ backend  =======================================================================
+  const BACKEND_URL = "https://84a998e4a085.ngrok-free.app/predict";
 
   if (!permission) {
-    // Camera permissions are still loading
     return (
-      <View
-        style={[styles.container, { backgroundColor: theme.backgroundColor }]}
-      >
-        <ActivityIndicator size="large" color={theme.primary} />
+      <View style={styles.container}>
+        <ActivityIndicator size="large" />
+        <Text>Requesting camera permissions...</Text>
       </View>
     );
   }
 
   if (!permission.granted) {
-    // Camera permissions are not granted yet
     return (
-      <View
-        style={[styles.container, { backgroundColor: theme.backgroundColor }]}
-      >
-        <Text style={[styles.message, { color: theme.textColor }]}>
-          We need your permission to show the camera
+      <View style={styles.container}>
+        <Text style={styles.message}>
+          We need your permission to use the camera
         </Text>
-        <TouchableOpacity
-          onPress={requestPermission}
-          style={[styles.button, { backgroundColor: theme.primary }]}
-        >
+        <TouchableOpacity style={styles.button} onPress={requestPermission}>
           <Text style={styles.buttonText}>Grant Permission</Text>
         </TouchableOpacity>
       </View>
@@ -56,20 +45,18 @@ export default function Create() {
   }
 
   const takePicture = async () => {
-    console.log("Taking picture...");
-    try {
-      if (cameraRef.current) {
-        console.log("Camera ref is available");
+    if (cameraRef.current) {
+      try {
         const photo = await cameraRef.current.takePictureAsync({
           quality: 0.8,
-          base64: false,
         });
-        console.log("Photo taken:", photo.uri);
-        setCapturedImage(photo.uri);
+        if (photo?.uri) {
+          setCapturedImage(photo.uri);
+        }
+      } catch (error) {
+        console.error("Error taking picture:", error);
+        Alert.alert("Error", "Failed to take picture");
       }
-    } catch (error) {
-      console.error("Error taking picture:", error);
-      Alert.alert("Error", "Failed to take picture");
     }
   };
 
@@ -77,7 +64,7 @@ export default function Create() {
     setFacing((current) => (current === "back" ? "front" : "back"));
   };
 
-  const retakePicture = () => {
+  const retakePhoto = () => {
     setCapturedImage(null);
   };
 
@@ -90,10 +77,10 @@ export default function Create() {
       formData.append("image", {
         uri: capturedImage,
         type: "image/jpeg",
-        name: "outfit.jpg",
+        name: "photo.jpg",
       } as any);
 
-      const response = await fetch("http://your-server-url.com/upload", {
+      const response = await fetch(BACKEND_URL, {
         method: "POST",
         body: formData,
         headers: {
@@ -102,9 +89,9 @@ export default function Create() {
       });
 
       if (response.ok) {
-        console.log("Image uploaded successfully");
+        const result = await response.json();
         Alert.alert("Success", "Image uploaded successfully!");
-        // Reset state
+        console.log("Upload result:", result);
         setCapturedImage(null);
       } else {
         Alert.alert("Error", "Failed to upload image");
@@ -119,30 +106,23 @@ export default function Create() {
 
   if (capturedImage) {
     return (
-      <View
-        style={[styles.container, { backgroundColor: theme.backgroundColor }]}
-      >
-        <Image
-          source={{ uri: capturedImage }}
-          style={styles.fullScreenPreview}
-        />
-        <View style={styles.previewButtonContainer}>
+      <View style={styles.container}>
+        <Image source={{ uri: capturedImage }} style={styles.preview} />
+        <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={[
-              styles.previewButton,
-              { backgroundColor: theme.secondaryText },
-            ]}
-            onPress={retakePicture}
+            style={[styles.button, styles.secondaryButton]}
+            onPress={retakePhoto}
+            disabled={isUploading}
           >
             <Text style={styles.buttonText}>Retake</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.previewButton, { backgroundColor: theme.primary }]}
+            style={[styles.button, styles.primaryButton]}
             onPress={uploadImage}
             disabled={isUploading}
           >
             {isUploading ? (
-              <ActivityIndicator color="white" />
+              <ActivityIndicator color="#fff" />
             ) : (
               <Text style={styles.buttonText}>Upload</Text>
             )}
@@ -153,26 +133,22 @@ export default function Create() {
   }
 
   return (
-    <View
-      style={[styles.container, { backgroundColor: theme.backgroundColor }]}
-    >
+    <View style={styles.container}>
       <CameraView style={styles.camera} facing={facing} ref={cameraRef}>
-        {/* Flip button positioned at top right */}
-        <TouchableOpacity
-          style={[styles.flipButton, { backgroundColor: theme.primary }]}
-          onPress={toggleCameraFacing}
-        >
-          <Text style={styles.buttonText}>Flip</Text>
-        </TouchableOpacity>
+        <View style={styles.cameraControls}>
+          <TouchableOpacity
+            style={styles.flipButton}
+            onPress={toggleCameraFacing}
+          >
+            <Text style={styles.flipText}>Flip</Text>
+          </TouchableOpacity>
+        </View>
       </CameraView>
-
-      {/* Capture button at bottom center */}
-      <TouchableOpacity
-        style={[styles.captureButton, { backgroundColor: theme.primary }]}
-        onPress={takePicture}
-      >
-        <Text style={styles.buttonText}>Take Picture</Text>
-      </TouchableOpacity>
+      <View style={styles.captureContainer}>
+        <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
+          <View style={styles.captureButtonInner} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -181,83 +157,81 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
+    backgroundColor: "#000",
   },
   message: {
     textAlign: "center",
-    paddingBottom: 10,
+    paddingBottom: 20,
+    color: "#fff",
     fontSize: 16,
   },
   camera: {
     flex: 1,
   },
-  buttonContainer: {
+  cameraControls: {
     flex: 1,
-    flexDirection: "row",
     backgroundColor: "transparent",
-    margin: 64,
-  },
-  button: {
-    flex: 1,
-    alignSelf: "flex-end",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    padding: 15,
-    margin: 5,
-    borderRadius: 8,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    padding: 20,
   },
   flipButton: {
-    position: "absolute",
-    top: 50,
-    right: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    zIndex: 1,
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 50
   },
-  buttonText: {
+  flipText: {
     fontSize: 18,
+    color: "#fff",
     fontWeight: "bold",
-    color: "white",
+  },
+  captureContainer: {
+    position: "absolute",
+    bottom: 40,
+    alignSelf: "center",
+  },
+  captureButton: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: "rgba(255,255,255,0.3)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  captureButtonInner: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#fff",
   },
   preview: {
     flex: 1,
-    width: "100%",
     resizeMode: "contain",
   },
-  fullScreenPreview: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-  },
-  previewButtonContainer: {
-    position: "absolute",
-    bottom: 50,
-    left: 0,
-    right: 0,
+  buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    paddingHorizontal: 40,
+    padding: 20,
+    backgroundColor: "#000",
   },
-  previewButton: {
+  button: {
     paddingHorizontal: 30,
     paddingVertical: 15,
     borderRadius: 10,
-    minWidth: 100,
+    minWidth: 120,
     alignItems: "center",
   },
-  captureButton: {
-    position: "absolute",
-    bottom: 50,
-    alignSelf: "center",
-    paddingHorizontal: 30,
-    paddingVertical: 15,
-    borderRadius: 50,
-    elevation: 5,
+  primaryButton: {
+    backgroundColor: "#007AFF",
+  },
+  secondaryButton: {
+    backgroundColor: "#666",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
