@@ -84,7 +84,7 @@ export default function Index() {
         paddingHorizontal: 20,
       }}
     >
-      <ScrollView>
+      <View>
         {/* Top Box Greeting */}
         <Text
           style={{
@@ -98,7 +98,7 @@ export default function Index() {
           Welcome, User
         </Text>
         {/* Placeholder box: For displaying outfits */}
-        <View
+        <ScrollView
           style={{
             height: middleBoxHeight,
             borderRadius: 12,
@@ -117,7 +117,7 @@ export default function Index() {
               </View>
             ))}
           </View>
-        </View>
+        </ScrollView>
         {/* Placeholder Box: For the AI chatbox */}
         <TouchableOpacity
           onPress={() => setIsChatModalVisible(true)}
@@ -178,7 +178,7 @@ export default function Index() {
             </View>
           </View>
         </TouchableOpacity>
-      </ScrollView>
+      </View>
 
       {/* Full Page Chat Modal */}
       <Modal
