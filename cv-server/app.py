@@ -1,10 +1,10 @@
-# app.py
-# Flask server - receives images from frontend
-
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from processing import load_model, process_image
+import json
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route("/")
 def index():
@@ -19,26 +19,52 @@ def predict():
     Returns: JSON with clothing type and color data
     """
     try:
-        # Check if image was sent
         if 'image' not in request.files:
             return jsonify({
                 'success': False,
                 'error': 'No image provided. Send as form-data with key "image"'
             }), 400
         
-        # Get the image file
         file = request.files['image']
         
-        # Read image as bytes (this is what processing.py expects)
+        print("\n" + "=" * 60)
+        print("📸 IMAGE RECEIVED")
+        print("=" * 60)
+        
         image_bytes = file.read()
         
-        # Process it (prediction + colors)
         result = process_image(image_bytes)
         
-        # Return JSON response
+        if result['success']:
+            print("\n✅ PREDICTION SUCCESS")
+            print("-" * 60)
+            print(f"🏷️  Clothing Type: {result['clothing']['predicted_class']}")
+            print(f"📊 Confidence: {result['clothing']['confidence']:.2f}%")
+            print("\nTop 3 Predictions:")
+            for i, pred in enumerate(result['clothing']['top_predictions'][:3], 1):
+                print(f"  {i}. {pred['class']}: {pred['confidence']:.2f}%")
+            
+            print(f"\n🎨 Dominant Color: {result['colors']['dominant_color']['name']}")
+            print(f"   RGB: {result['colors']['dominant_color']['rgb']}")
+            
+            print("\nColor Palette:")
+            for i, color in enumerate(result['colors']['palette'], 1):
+                # Handle both with and without percentage key
+                percentage_str = f" ({color['percentage']:.1f}%)" if 'percentage' in color else ""
+                print(f"  {i}. {color['name']}: RGB{tuple(color['rgb'])}{percentage_str}")
+            
+            print("\n📋 Full JSON Response:")
+            print(json.dumps(result, indent=2))
+            print("=" * 60 + "\n")
+        else:
+            print(f"\n❌ PREDICTION FAILED: {result.get('error', 'Unknown error')}\n")
+        
         return jsonify(result), 200 if result['success'] else 500
     
     except Exception as e:
+        print(f"\n❌ ERROR processing request: {str(e)}\n")
+        import traceback
+        traceback.print_exc()  # This will show the full error trace
         return jsonify({
             'success': False,
             'error': str(e)
@@ -49,7 +75,6 @@ if __name__ == "__main__":
     print("🚀 Starting Flask Server...")
     print("=" * 50)
     
-    # Load model once at startup
     if load_model():
         print("✓ Ready to receive images")
     else:

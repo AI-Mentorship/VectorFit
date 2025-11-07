@@ -20,7 +20,7 @@ export default function Create() {
   const cameraRef = useRef<CameraView>(null);
 
   // TO DO: REPLACE w/ backend  =======================================================================
-  const BACKEND_URL = "temp";
+  const BACKEND_URL = "https://84a998e4a085.ngrok-free.app/predict";
 
   if (!permission) {
     return (
