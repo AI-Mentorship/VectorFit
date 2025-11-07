@@ -7,10 +7,12 @@ import {
 } from "react-native";
 import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "../contexts/ThemeContext";
 
 type SortOption = "lastClicked" | "seasonal" | "occasional";
 
 export default function Wardrobe() {
+  const { theme } = useTheme();
   const [selectedSort, setSelectedSort] = useState<SortOption>("lastClicked");
   const [showDropdown, setShowDropdown] = useState(false);
   const [lastClickedOutfit, setLastClickedOutfit] = useState<number | null>(
@@ -32,31 +34,63 @@ export default function Wardrobe() {
       <TouchableOpacity
         style={[
           styles.outfitCard,
-          lastClickedOutfit === outfitNumber && styles.lastClickedCard,
+          {
+            backgroundColor: theme.cardBackground,
+            borderColor:
+              lastClickedOutfit === outfitNumber
+                ? theme.primary
+                : theme.borderColor,
+          },
+          lastClickedOutfit === outfitNumber && {
+            borderStyle: "solid",
+            backgroundColor: theme.primary + "20",
+          },
         ]}
         onPress={() => handleOutfitClick(outfitNumber)}
       >
         <View style={styles.placeholderContent}>
-          <Ionicons name="shirt-outline" size={40} color="#ccc" />
-          <Text style={styles.placeholderText}>Add Outfit</Text>
+          <Ionicons
+            name="shirt-outline"
+            size={40}
+            color={theme.secondaryText}
+          />
+          <Text
+            style={[styles.placeholderText, { color: theme.secondaryText }]}
+          >
+            Add Outfit
+          </Text>
         </View>
       </TouchableOpacity>
-      <Text style={styles.outfitLabel}>Outfit {outfitNumber}</Text>
+      <Text style={[styles.outfitLabel, { color: theme.textColor }]}>
+        Outfit {outfitNumber}
+      </Text>
     </View>
   );
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[styles.container, { backgroundColor: theme.backgroundColor }]}
+    >
       {/* Header with Sort Dropdown */}
       <View style={styles.header}>
-        <Text style={styles.title}>My Wardrobe</Text>
+        <Text style={[styles.title, { color: theme.textColor }]}>
+          My Wardrobe
+        </Text>
 
         <View style={styles.sortContainer}>
           <TouchableOpacity
-            style={styles.dropdownButton}
+            style={[
+              styles.dropdownButton,
+              {
+                backgroundColor: theme.cardBackground,
+                borderColor: theme.borderColor,
+              },
+            ]}
             onPress={() => setShowDropdown(!showDropdown)}
           >
-            <Text style={styles.dropdownButtonText}>
+            <Text
+              style={[styles.dropdownButtonText, { color: theme.textColor }]}
+            >
               {
                 sortOptions.find((option) => option.value === selectedSort)
                   ?.label
@@ -65,18 +99,29 @@ export default function Wardrobe() {
             <Ionicons
               name={showDropdown ? "chevron-up" : "chevron-down"}
               size={20}
-              color="#666"
+              color={theme.secondaryText}
             />
           </TouchableOpacity>
 
           {showDropdown && (
-            <View style={styles.dropdown}>
+            <View
+              style={[
+                styles.dropdown,
+                {
+                  backgroundColor: theme.cardBackground,
+                  borderColor: theme.borderColor,
+                },
+              ]}
+            >
               {sortOptions.map((option) => (
                 <TouchableOpacity
                   key={option.value}
                   style={[
                     styles.dropdownOption,
-                    selectedSort === option.value && styles.selectedOption,
+                    { borderBottomColor: theme.borderColor },
+                    selectedSort === option.value && {
+                      backgroundColor: theme.primary + "20",
+                    },
                   ]}
                   onPress={() => {
                     setSelectedSort(option.value as SortOption);
@@ -86,8 +131,11 @@ export default function Wardrobe() {
                   <Text
                     style={[
                       styles.dropdownOptionText,
-                      selectedSort === option.value &&
-                        styles.selectedOptionText,
+                      { color: theme.textColor },
+                      selectedSort === option.value && {
+                        color: theme.primary,
+                        fontWeight: "500",
+                      },
                     ]}
                   >
                     {option.label}
@@ -116,7 +164,6 @@ export default function Wardrobe() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
     paddingTop: 60,
   },
   header: {
@@ -126,7 +173,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#333",
     marginBottom: 20,
   },
   sortContainer: {
@@ -137,12 +183,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "white",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#e1e5e9",
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -151,7 +195,6 @@ const styles = StyleSheet.create({
   },
   dropdownButtonText: {
     fontSize: 16,
-    color: "#333",
     fontWeight: "500",
   },
   dropdown: {
@@ -159,10 +202,8 @@ const styles = StyleSheet.create({
     top: "100%",
     left: 0,
     right: 0,
-    backgroundColor: "white",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#e1e5e9",
     marginTop: 4,
     elevation: 5,
     shadowColor: "#000",
@@ -174,18 +215,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#f1f3f5",
-  },
-  selectedOption: {
-    backgroundColor: "#f8f9ff",
   },
   dropdownOptionText: {
     fontSize: 16,
-    color: "#333",
-  },
-  selectedOptionText: {
-    color: "#4f46e5",
-    fontWeight: "500",
   },
   scrollView: {
     flex: 1,
@@ -205,10 +237,8 @@ const styles = StyleSheet.create({
   },
   outfitCard: {
     aspectRatio: 0.8,
-    backgroundColor: "white",
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: "#e1e5e9",
     borderStyle: "dashed",
     justifyContent: "center",
     alignItems: "center",
@@ -219,11 +249,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
   },
-  lastClickedCard: {
-    borderColor: "#4f46e5",
-    borderStyle: "solid",
-    backgroundColor: "#f8f9ff",
-  },
   placeholderContent: {
     alignItems: "center",
     justifyContent: "center",
@@ -231,13 +256,11 @@ const styles = StyleSheet.create({
   placeholderText: {
     marginTop: 8,
     fontSize: 14,
-    color: "#999",
     fontWeight: "500",
   },
   outfitLabel: {
     textAlign: "center",
     fontSize: 16,
     fontWeight: "600",
-    color: "#333",
   },
 });

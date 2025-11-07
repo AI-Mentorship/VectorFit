@@ -1,9 +1,16 @@
-import { Text, useWindowDimensions, View, ScrollView, Image } from "react-native";
+import {
+  Text,
+  useWindowDimensions,
+  View,
+  ScrollView,
+  Image,
+} from "react-native";
 import {
   useFonts,
   SawarabiGothic_400Regular,
 } from "@expo-google-fonts/sawarabi-gothic";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "../contexts/ThemeContext";
 
 // Mock data for shared outfits
 const mockOutfits = [
@@ -61,13 +68,15 @@ export default function Community() {
   const [fontsLoaded] = useFonts({ SawarabiGothic_400Regular });
   const deviceHeight = useWindowDimensions().height;
   const mainBox = (deviceHeight * 7.6) / 10;
-  
+  const { theme } = useTheme();
+
   return (
     <View
       style={{
         flex: 1,
         paddingTop: 40,
         paddingHorizontal: 20,
+        backgroundColor: theme.backgroundColor,
       }}
     >
       {/* Header */}
@@ -78,20 +87,22 @@ export default function Community() {
           marginBottom: 16,
           marginLeft: 12,
           marginTop: 20,
+          color: theme.textColor,
           // fontFamily: "SawarabiGothic_400Regular",
-
         }}
       >
         Community
       </Text>
-      
+
       {/* Community Feed */}
       <View
         style={{
           height: mainBox,
-          backgroundColor: "#e6e6e6",
+          backgroundColor: theme.cardBackground,
           borderRadius: 20,
           overflow: "hidden",
+          borderWidth: 1,
+          borderColor: theme.borderColor,
         }}
       >
         <ScrollView
@@ -105,7 +116,7 @@ export default function Community() {
             <View
               key={outfit.id}
               style={{
-                backgroundColor: "white",
+                backgroundColor: theme.cardBackground,
                 borderRadius: 16,
                 padding: 16,
                 marginBottom: 12,
@@ -114,6 +125,8 @@ export default function Community() {
                 shadowOpacity: 0.1,
                 shadowRadius: 4,
                 elevation: 3,
+                borderWidth: 1,
+                borderColor: theme.borderColor,
               }}
             >
               {/* User Info */}
@@ -143,6 +156,7 @@ export default function Community() {
                       fontSize: 16,
                       fontWeight: "600",
                       fontFamily: "SawarabiGothic_400Regular",
+                      color: theme.textColor,
                     }}
                   >
                     {outfit.user}
@@ -151,7 +165,7 @@ export default function Community() {
                   <Text
                     style={{
                       fontSize: 12,
-                      color: "#666",
+                      color: theme.secondaryText,
                       fontFamily: "SawarabiGothic_400Regular",
                     }}
                   >
@@ -171,13 +185,13 @@ export default function Community() {
                   alignItems: "center",
                 }}
               >
-                
                 <Text
                   style={{
                     fontSize: 16,
                     fontWeight: "600",
                     marginTop: 8,
                     fontFamily: "SawarabiGothic_400Regular",
+                    color: theme.textColor,
                   }}
                 >
                   {outfit.outfit}
@@ -193,21 +207,30 @@ export default function Community() {
                 }}
               >
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Ionicons name="heart" size={18} color="black" />
+                  <Ionicons name="heart" size={18} color={theme.textColor} />
                   <Text
                     style={{
                       fontSize: 14,
                       fontWeight: "600",
                       fontFamily: "SawarabiGothic_400Regular",
                       marginLeft: 5,
+                      color: theme.textColor,
                     }}
                   >
                     {outfit.likes}
                   </Text>
                 </View>
                 <View style={{ flexDirection: "row", gap: 16 }}>
-                  <Ionicons name="chatbubble-ellipses-outline" size={18} color="black" />
-                  <Ionicons name="bookmark-outline" size={18} color="black" />
+                  <Ionicons
+                    name="chatbubble-ellipses-outline"
+                    size={18}
+                    color={theme.textColor}
+                  />
+                  <Ionicons
+                    name="bookmark-outline"
+                    size={18}
+                    color={theme.textColor}
+                  />
                 </View>
               </View>
             </View>

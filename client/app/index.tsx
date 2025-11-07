@@ -17,6 +17,7 @@ import {
 } from "@expo-google-fonts/sawarabi-gothic";
 import React, { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "../contexts/ThemeContext";
 
 interface Message {
   id: string;
@@ -28,6 +29,7 @@ interface Message {
 export default function Index() {
   const [fontsLoaded] = useFonts({ SawarabiGothic_400Regular });
   const deviceHeight = useWindowDimensions().height;
+  const { theme } = useTheme();
   const middleBoxHeight = (deviceHeight * 6.7) / 10;
   const lowerBoxHeight = (deviceHeight * 1) / 13;
   const [prompt, setPrompt] = useState("");
@@ -68,9 +70,10 @@ export default function Index() {
           flex: 1,
           justifyContent: "center",
           alignItems: "center",
+          backgroundColor: theme.backgroundColor,
         }}
       >
-        <Text>Loading…</Text>
+        <Text style={{ color: theme.textColor }}>Loading…</Text>
       </View>
     );
   }
@@ -82,6 +85,7 @@ export default function Index() {
         // alignItems: "center",
         paddingTop: 60,
         paddingHorizontal: 20,
+        backgroundColor: theme.backgroundColor,
       }}
     >
       <ScrollView>
@@ -92,6 +96,7 @@ export default function Index() {
             fontWeight: "bold",
             marginBottom: 16,
             marginLeft: 12,
+            color: theme.textColor,
             // fontFamily: "SawarabiGothic_400Regular",
           }}
         >
@@ -102,18 +107,24 @@ export default function Index() {
           style={{
             height: middleBoxHeight,
             borderRadius: 12,
-            backgroundColor: "#e6e6e6",
+            backgroundColor: theme.cardBackground,
             padding: 16,
+            borderWidth: 1,
+            borderColor: theme.borderColor,
           }}
         >
-          <Text style={styles.sectionTitle}>Recommended outfits for today</Text>
+          <Text style={[styles.sectionTitle, { color: theme.textColor }]}>
+            Recommended outfits for today
+          </Text>
           <View style={styles.outfitGrid}>
             {[1, 2, 3, 4].map((outfitNumber) => (
               <View key={outfitNumber} style={styles.outfitContainer}>
                 <View style={styles.outfitDisplayCard}>
                   {/* Empty display container */}
                 </View>
-                <Text style={styles.outfitLabel}>Outfit {outfitNumber}</Text>
+                <Text style={[styles.outfitLabel, { color: theme.textColor }]}>
+                  Outfit {outfitNumber}
+                </Text>
               </View>
             ))}
           </View>
@@ -127,10 +138,12 @@ export default function Index() {
             style={{
               height: lowerBoxHeight,
               borderRadius: 12,
-              backgroundColor: "#e6e6e6",
+              backgroundColor: theme.cardBackground,
               marginTop: 12,
               padding: 8,
               justifyContent: "center",
+              borderWidth: 1,
+              borderColor: theme.borderColor,
             }}
           >
             <View
@@ -146,11 +159,13 @@ export default function Index() {
                   height: 44,
                   paddingHorizontal: 12,
                   borderRadius: 8,
-                  backgroundColor: "#fff",
+                  backgroundColor: theme.backgroundColor,
                   justifyContent: "center",
+                  borderWidth: 1,
+                  borderColor: theme.borderColor,
                 }}
               >
-                <Text style={{ color: "#666" }}>
+                <Text style={{ color: theme.secondaryText }}>
                   What are we wearing today?
                 </Text>
               </View>
@@ -160,7 +175,7 @@ export default function Index() {
                   height: 44,
                   paddingHorizontal: 14,
                   borderRadius: 8,
-                  backgroundColor: "#333",
+                  backgroundColor: theme.primary,
                   justifyContent: "center",
                   alignItems: "center",
                 }}
@@ -224,9 +239,7 @@ export default function Index() {
                     key={message.id}
                     style={[
                       styles.messageBubble,
-                      message.isUser
-                        ? styles.userMessage
-                        : styles.aiMessage,
+                      message.isUser ? styles.userMessage : styles.aiMessage,
                     ]}
                   >
                     <Text
