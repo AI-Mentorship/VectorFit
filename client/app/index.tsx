@@ -36,6 +36,8 @@ export default function Index() {
   const [isChatModalVisible, setIsChatModalVisible] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
 
+  const styles = createStyles(theme, middleBoxHeight, lowerBoxHeight);
+
   const handleSendMessage = () => {
     if (!prompt.trim()) return;
 
@@ -65,54 +67,20 @@ export default function Index() {
 
   if (!fontsLoaded) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: theme.backgroundColor,
-        }}
-      >
-        <Text style={{ color: theme.textColor }}>Loading…</Text>
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Loading…</Text>
       </View>
     );
   }
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "flex-start",
-        // alignItems: "center",
-        paddingTop: 60,
-        paddingHorizontal: 20,
-        backgroundColor: theme.backgroundColor,
-      }}
-    >
+    <View style={styles.container}>
       <View>
         {/* Top Box Greeting */}
-        <Text
-          style={{
-            fontSize: 28,
-            fontWeight: "bold",
-            marginBottom: 16,
-            marginLeft: 12,
-            color: theme.textColor,
-            // fontFamily: "SawarabiGothic_400Regular",
-          }}
-        >
+        <Text style={styles.greeting}>
           Welcome, User
         </Text>
         {/* Placeholder box: For displaying outfits */}
-        <ScrollView
-          style={{
-            height: middleBoxHeight,
-            borderRadius: 12,
-            backgroundColor: theme.cardBackground,
-            padding: 16,
-            borderWidth: 1,
-            borderColor: theme.borderColor,
-          }}
-        >
+        <ScrollView style={styles.outfitsScrollView}>
           <Text style={[styles.sectionTitle, { color: theme.textColor }]}>
             Recommended outfits for today
           </Text>
@@ -134,59 +102,16 @@ export default function Index() {
           onPress={() => setIsChatModalVisible(true)}
           activeOpacity={0.7}
         >
-          <View
-            style={{
-              height: lowerBoxHeight,
-              borderRadius: 12,
-              backgroundColor: theme.cardBackground,
-              marginTop: 12,
-              padding: 8,
-              justifyContent: "center",
-              borderWidth: 1,
-              borderColor: theme.borderColor,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <View
-                style={{
-                  flex: 1,
-                  height: 44,
-                  paddingHorizontal: 12,
-                  borderRadius: 8,
-                  backgroundColor: theme.backgroundColor,
-                  justifyContent: "center",
-                  borderWidth: 1,
-                  borderColor: theme.borderColor,
-                }}
-              >
-                <Text style={{ color: theme.secondaryText }}>
+          <View style={styles.chatBoxContainer}>
+            <View style={styles.chatBoxRow}>
+              <View style={styles.chatInputPreview}>
+                <Text style={styles.chatPlaceholderText}>
                   What are we wearing today?
                 </Text>
               </View>
 
-              <View
-                style={{
-                  height: 44,
-                  paddingHorizontal: 14,
-                  borderRadius: 8,
-                  backgroundColor: "#333",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Text
-                  style={{
-                    color: "#fff",
-                    fontWeight: "600",
-                    fontFamily: "SawarabiGothic_400Regular",
-                  }}
-                >
+              <View style={styles.sendButtonPreview}>
+                <Text style={styles.sendButtonText}>
                   Send
                 </Text>
               </View>
@@ -205,7 +130,7 @@ export default function Index() {
         <SafeAreaView style={styles.modalContainer}>
           <KeyboardAvoidingView
             behavior="padding"
-            style={{ flex: 1 }}
+            style={styles.keyboardAvoidingView}
             keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
           >
             {/* Chat Header */}
@@ -217,7 +142,7 @@ export default function Index() {
                 <Ionicons name="close" size={28} color="#333" />
               </TouchableOpacity>
               <Text style={styles.chatHeaderTitle}>Outfit Assistant</Text>
-              <View style={{ width: 28 }} />
+              <View style={styles.headerSpacer} />
             </View>
 
             {/* Messages */}
@@ -294,7 +219,86 @@ export default function Index() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any, middleBoxHeight: number, lowerBoxHeight: number) => StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: theme.backgroundColor,
+  },
+  loadingText: {
+    color: theme.textColor,
+  },
+  container: {
+    flex: 1,
+    justifyContent: "flex-start",
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    backgroundColor: theme.backgroundColor,
+  },
+  greeting: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 16,
+    marginLeft: 12,
+    color: theme.textColor,
+    // fontFamily: "SawarabiGothic_400Regular",
+  },
+  outfitsScrollView: {
+    height: middleBoxHeight,
+    borderRadius: 12,
+    backgroundColor: theme.cardBackground,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: theme.borderColor,
+  },
+  chatBoxContainer: {
+    height: lowerBoxHeight,
+    borderRadius: 12,
+    backgroundColor: theme.cardBackground,
+    marginTop: 12,
+    padding: 8,
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: theme.borderColor,
+  },
+  chatBoxRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  chatInputPreview: {
+    flex: 1,
+    height: 44,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: theme.backgroundColor,
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: theme.borderColor,
+  },
+  chatPlaceholderText: {
+    color: theme.secondaryText,
+  },
+  sendButtonPreview: {
+    height: 44,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    backgroundColor: "#333",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  sendButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontFamily: "SawarabiGothic_400Regular",
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  headerSpacer: {
+    width: 28,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
