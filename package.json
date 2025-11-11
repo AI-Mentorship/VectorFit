@@ -1,8 +1,19 @@
 {
   "dependencies": {
+    "@langchain/core": "^1.0.4",
+    "@langchain/google-genai": "^1.0.0",
+    "@langchain/openai": "^1.0.0",
+    "@langchain/pinecone": "^1.0.0",
+    "@pinecone-database/pinecone": "^5.1.2",
+    "dotenv": "^17.2.3",
+    "langchain": "^1.0.4",
     "mongoose": "^8.19.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "@types/node": "^24.10.0",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
   }
 }

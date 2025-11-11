@@ -49,6 +49,7 @@ def predict():
             for i, pred in enumerate(result['clothing']['top_predictions'][:3], 1):
                 print(f"  {i}. {pred['class']}: {pred['confidence']:.2f}%")
 
+
             # Attempt to embed the JSON result into Pinecone (won't raise on failure)
             try:
                 item_id = embed_cv_json(result)
@@ -58,6 +59,8 @@ def predict():
                 # attach error info to response but don't fail the prediction
                 result['embed_error'] = str(e)
                 print(f"\n⚠️ Embedding failed: {e}")
+
+
 
             print(f"\n🎨 Dominant Color: {result['colors']['dominant_color']['name']}")
             print(f"   RGB: {result['colors']['dominant_color']['rgb']}")
