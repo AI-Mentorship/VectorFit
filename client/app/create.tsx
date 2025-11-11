@@ -19,8 +19,7 @@ export default function Create() {
   const [isUploading, setIsUploading] = useState(false);
   const cameraRef = useRef<CameraView>(null);
 
-  // TO DO: REPLACE w/ backend  =======================================================================
-  const BACKEND_URL = "https://84a998e4a085.ngrok-free.app/predict";
+  const BACKEND_URL = "https://5895f506415e.ngrok-free.app/predict";
 
   if (!permission) {
     return (
