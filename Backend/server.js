@@ -25,11 +25,24 @@ app.post('/echo', (req, res) => {
     res.json({ youSent: req.body });
 });
 
-
 // Routes
 import usersRoutes from './routes/usersRoutes.js';
 app.use('/users', usersRoutes);
 
+import { getWeatherData } from './weatherService.js';
+app.post('/api/weather', async (req, res) => {
+    const { latitude, longitude } = req.body;
+    
+    if (!latitude || !longitude) {
+        return res.status(400).json({ 
+            success: false,
+            error: 'Latitude and longitude required' 
+        });
+    }
+    
+    const result = await getWeatherData(latitude, longitude);
+    res.json(result);
+});
 
 // Start server
 const PORT = process.env.PORT || 3000;
