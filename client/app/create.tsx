@@ -19,7 +19,7 @@ export default function Create() {
   const [isUploading, setIsUploading] = useState(false);
   const cameraRef = useRef<CameraView>(null);
 
-  const BACKEND_URL = "https://5895f506415e.ngrok-free.app/predict";
+  const BACKEND_URL = "https://847113b78c99.ngrok-free.app/predict";
 
   if (!permission) {
     return (

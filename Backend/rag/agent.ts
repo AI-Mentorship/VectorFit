@@ -17,7 +17,7 @@ import * as readline from "readline";
 
 
 // Configuration
-const GOOGLE_API_KEY = process.env.GEMINI_API_KEY!;
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY!;
 const PINECONE_API_KEY =process.env.PINECONE_API_KEY!;
 const PINECONE_INDEX_NAME = process.env.PINECONE_INDEX!;
 const PINECONE_NAMESPACE = "your-namespace"; // Optional
