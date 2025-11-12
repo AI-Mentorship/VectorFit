@@ -40,6 +40,8 @@ const index = pinecone.index(PINECONE_INDEX_NAME);
 const promptTemplate = `You are a personalized wardrobe stylist and fashion expert assistant. 
 Your primary goal is to help the user create outfits and style recommendations using only the items listed in their personal inventory.
 
+try to mix stuff up from time to time and pick nice clean outfits. Be creative but practical.
+
 --- INVENTORY CONTEXT ---
 The user's personal clothing inventory retrieved from their database is:
 {context}
