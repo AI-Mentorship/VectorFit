@@ -6,9 +6,10 @@ import torch
 import torch.nn as nn
 from PIL import Image
 from torchvision import transforms, models
-from colorthief import ColorThief
+from colorthief import ColorThief # type: ignore
 import io
 import os
+
 
 # Translation dictionary
 translation_map = {
@@ -180,8 +181,12 @@ def process_image(image_bytes):
     colors = get_color_metadata(image_bytes)
     
     # Return JSON response
-    return {
+    cv_json = {
         'success': True,
         'clothing': prediction,
         'colors': colors
     }
+
+    
+
+    return cv_json
