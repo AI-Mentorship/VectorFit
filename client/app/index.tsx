@@ -10,13 +10,15 @@ import {
   StyleSheet,
   Modal,
   SafeAreaView,
+  Alert,
 } from "react-native";
 import {
   useFonts,
   SawarabiGothic_400Regular,
 } from "@expo-google-fonts/sawarabi-gothic";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import * as Location from 'expo-location';
 
 interface Message {
   id: string;
@@ -24,6 +26,13 @@ interface Message {
   isUser: boolean;
   timestamp: Date;
 }
+
+// Pre-written prompt suggestions
+const QUICK_PROMPTS = [
+  "What should I wear today?",
+  "Suggest a formal look",
+  "Show me weekend vibes",
+];
 
 export default function Index() {
   const [fontsLoaded] = useFonts({ SawarabiGothic_400Regular });
@@ -33,32 +42,94 @@ export default function Index() {
   const [prompt, setPrompt] = useState("");
   const [isChatModalVisible, setIsChatModalVisible] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
-  const handleSendMessage = () => {
-    if (!prompt.trim()) return;
+  // Your backend URL - UPDATE THIS with your Mac's IP!
+  const BACKEND_URL = "http://10.50.243.30:3000/chat"; // Try this one first
+
+  // Get user location on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          console.log('Permission to access location was denied');
+          return;
+        }
+
+        let loc = await Location.getCurrentPositionAsync({});
+        setLocation({
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+        });
+      } catch (error) {
+        console.error('Error getting location:', error);
+      }
+    })();
+  }, []);
+
+  const sendMessage = async (messageText: string) => {
+    if (!messageText.trim()) return;
 
     const newMessage: Message = {
       id: Date.now().toString(),
-      text: prompt,
+      text: messageText,
       isUser: true,
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, newMessage]);
-    console.log("Sending prompt:", prompt);
+    setPrompt("");
+    setIsLoading(true);
 
-    // Simulate AI response (replace with actual API call)
-    setTimeout(() => {
+    try {
+      const response = await fetch(BACKEND_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question: messageText,
+          latitude: location?.latitude,
+          longitude: location?.longitude,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const data = await response.json();
+      
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: "I'm here to help you find the perfect outfit! This is a placeholder response.",
+        text: data.answer || "Sorry, I couldn't process that.",
         isUser: false,
         timestamp: new Date(),
       };
+      
       setMessages((prev) => [...prev, aiResponse]);
-    }, 1000);
+    } catch (error) {
+      console.error("Chat error:", error);
+      const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "Sorry, something went wrong. Please try again or check if the server is running.",
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorResponse]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    setPrompt("");
+  const handleSendMessage = () => {
+    sendMessage(prompt);
+  };
+
+  const handleQuickPrompt = (promptText: string) => {
+    sendMessage(promptText);
   };
 
   if (!fontsLoaded) {
@@ -74,12 +145,12 @@ export default function Index() {
       </View>
     );
   }
+
   return (
     <View
       style={{
         flex: 1,
         justifyContent: "flex-start",
-        // alignItems: "center",
         paddingTop: 60,
         paddingHorizontal: 20,
       }}
@@ -92,7 +163,6 @@ export default function Index() {
             fontWeight: "bold",
             marginBottom: 16,
             marginLeft: 12,
-            // fontFamily: "SawarabiGothic_400Regular",
           }}
         >
           Welcome, User
@@ -217,28 +287,49 @@ export default function Index() {
                   <Text style={styles.emptyStateText}>
                     Start a conversation to get outfit recommendations!
                   </Text>
+                  
+                  {/* Quick prompt buttons */}
+                  <View style={styles.quickPromptsContainer}>
+                    {QUICK_PROMPTS.map((quickPrompt, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.quickPromptButton}
+                        onPress={() => handleQuickPrompt(quickPrompt)}
+                        disabled={isLoading}
+                      >
+                        <Text style={styles.quickPromptText}>{quickPrompt}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
                 </View>
               ) : (
-                messages.map((message) => (
-                  <View
-                    key={message.id}
-                    style={[
-                      styles.messageBubble,
-                      message.isUser
-                        ? styles.userMessage
-                        : styles.aiMessage,
-                    ]}
-                  >
-                    <Text
+                <>
+                  {messages.map((message) => (
+                    <View
+                      key={message.id}
                       style={[
-                        styles.messageText,
-                        message.isUser && styles.userMessageText,
+                        styles.messageBubble,
+                        message.isUser
+                          ? styles.userMessage
+                          : styles.aiMessage,
                       ]}
                     >
-                      {message.text}
-                    </Text>
-                  </View>
-                ))
+                      <Text
+                        style={[
+                          styles.messageText,
+                          message.isUser && styles.userMessageText,
+                        ]}
+                      >
+                        {message.text}
+                      </Text>
+                    </View>
+                  ))}
+                  {isLoading && (
+                    <View style={[styles.messageBubble, styles.aiMessage]}>
+                      <Text style={styles.messageText}>Thinking...</Text>
+                    </View>
+                  )}
+                </>
               )}
             </ScrollView>
 
@@ -256,20 +347,21 @@ export default function Index() {
                   autoCorrect={false}
                   multiline
                   maxLength={500}
+                  editable={!isLoading}
                 />
 
                 <TouchableOpacity
                   onPress={handleSendMessage}
                   style={[
                     styles.sendButton,
-                    !prompt.trim() && styles.sendButtonDisabled,
+                    (!prompt.trim() || isLoading) && styles.sendButtonDisabled,
                   ]}
-                  disabled={!prompt.trim()}
+                  disabled={!prompt.trim() || isLoading}
                 >
                   <Ionicons
                     name="send"
                     size={20}
-                    color={prompt.trim() ? "#fff" : "#999"}
+                    color={prompt.trim() && !isLoading ? "#fff" : "#999"}
                   />
                 </TouchableOpacity>
               </View>
@@ -362,9 +454,30 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     marginTop: 16,
+    marginBottom: 24,
     fontSize: 16,
     color: "#999",
     textAlign: "center",
+    fontFamily: "SawarabiGothic_400Regular",
+  },
+  quickPromptsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 8,
+    paddingHorizontal: 20,
+  },
+  quickPromptButton: {
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#e1e5e9",
+  },
+  quickPromptText: {
+    fontSize: 14,
+    color: "#4f46e5",
     fontFamily: "SawarabiGothic_400Regular",
   },
   messageBubble: {
