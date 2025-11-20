@@ -1,0 +1,921 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: |
+  Closet Sensei Auth API - AWS SAM stack with API Gateway and DynamoDB for user authentication
+
+Globals:
+  Function:
+    Timeout: 10
+    Environment:
+      Variables:
+        JWT_SECRET: secretstring1234 # Change this to a secure secret in production
+
+Resources:
+  # API Gateway
+  MyApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      BinaryMediaTypes:
+        - multipart/form-data
+        - image/*
+        - application/octet-stream
+      Cors:
+        AllowMethods: '''GET,POST,PUT,DELETE,OPTIONS'''
+        AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,x-auth-token'''
+        AllowOrigin: '''*'''
+        MaxAge: '''600'''
+
+  # DynamoDB Users Table
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ClosetSenseiUsers
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: email
+          AttributeType: S
+        - AttributeName: userName
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: EmailIndex
+          KeySchema:
+            - AttributeName: email
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: UserNameIndex
+          KeySchema:
+            - AttributeName: userName
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  # DynamoDB UserClotheItems Table
+  UserClotheItemsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ClosetSenseiClotheItems
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: clotheItemId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: clotheItemId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: UserIdIndex
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  # S3 Bucket for Clothing Images
+  ClotheImagesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub closet-sensei-images-${AWS::AccountId}
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+            AllowedOrigins:
+              - '*'
+            MaxAge: 3000
+
+  # Sign Up Lambda
+  SignUpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: auth/signup/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Events:
+        SignUp:
+          Type: Api
+          Properties:
+            Path: /user
+            Method: post
+            RestApiId: !Ref MyApi
+
+  # Login Lambda
+  LoginFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: auth/login/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Events:
+        Login:
+          Type: Api
+          Properties:
+            Path: /auth
+            Method: post
+            RestApiId: !Ref MyApi
+
+  # Get User Profile Lambda (Protected)
+  GetUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: auth/get-user/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Events:
+        GetUser:
+          Type: Api
+          Properties:
+            Path: /user/me
+            Method: get
+            RestApiId: !Ref MyApi
+
+  # Save Outfit Lambda (Protected)
+  SaveOutfitFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: outfits/save-outfit/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Events:
+        SaveOutfit:
+          Type: Api
+          Properties:
+            Path: /outfits
+            Method: post
+            RestApiId: !Ref MyApi
+
+  # Get Active Outfit Lambda (Protected)
+  GetActiveOutfitFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: outfits/get-active-outfit/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Events:
+        GetActiveOutfit:
+          Type: Api
+          Properties:
+            Path: /outfits/active
+            Method: get
+            RestApiId: !Ref MyApi
+
+  # Get Outfit History Lambda (Protected)
+  GetOutfitHistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: outfits/get-outfit-history/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Events:
+        GetOutfitHistory:
+          Type: Api
+          Properties:
+            Path: /outfits/history
+            Method: get
+            RestApiId: !Ref MyApi
+
+  # Get All Clothes Lambda (Protected)
+  GetAllClothesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: clothes/get-all-clothes/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+          CLOTHE_ITEMS_TABLE: !Ref UserClotheItemsTable
+          IMAGES_BUCKET: !Ref ClotheImagesBucket
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserClotheItemsTable
+        - S3ReadPolicy:
+            BucketName: !Ref ClotheImagesBucket
+      Events:
+        GetAllClothes:
+          Type: Api
+          Properties:
+            Path: /clothes
+            Method: get
+            RestApiId: !Ref MyApi
+
+  # Get Clothe By ID Lambda (Protected)
+  GetClotheByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: clothes/get-clothe-by-id/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          CLOTHE_ITEMS_TABLE: !Ref UserClotheItemsTable
+          IMAGES_BUCKET: !Ref ClotheImagesBucket
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserClotheItemsTable
+        - S3ReadPolicy:
+            BucketName: !Ref ClotheImagesBucket
+      Events:
+        GetClotheById:
+          Type: Api
+          Properties:
+            Path: /clothes/{id}
+            Method: get
+            RestApiId: !Ref MyApi
+
+  # ML Prediction Lambda (Docker Container)
+  MLPredictFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Architectures:
+        - x86_64
+      MemorySize: 3008 # 3 GB for PyTorch + model
+      Timeout: 60 # Allow time for cold starts + inference
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+          CLOTHE_ITEMS_TABLE: !Ref UserClotheItemsTable
+          IMAGES_BUCKET: !Ref ClotheImagesBucket
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserClotheItemsTable
+        - S3CrudPolicy:
+            BucketName: !Ref ClotheImagesBucket
+      Events:
+        Predict:
+          Type: Api
+          Properties:
+            Path: /predict
+            Method: post
+            RestApiId: !Ref MyApi
+    Metadata:
+      DockerTag: python3.12-v1
+      DockerContext: ./ml-predict
+      Dockerfile: Dockerfile
+
+  # Keep Lambda warm by pinging every 4 minutes
+  KeepWarmRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Ping ML Lambda every 4 minutes to prevent cold starts
+      ScheduleExpression: rate(4 minutes)
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt MLPredictFunction.Arn
+          Id: KeepMLLambdaWarm
+          Input: '{"httpMethod": "GET", "path": "/predict"}'
+
+  KeepWarmPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref MLPredictFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt KeepWarmRule.Arn
+
+  # Friends API Functions
+  AddFriendFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: friends/add-friend/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Events:
+        AddFriend:
+          Type: Api
+          Properties:
+            Path: /friends/add
+            Method: post
+            RestApiId: !Ref MyApi
+
+  AcceptFriendFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: friends/accept-friend/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Events:
+        AcceptFriend:
+          Type: Api
+          Properties:
+            Path: /friends/accept
+            Method: post
+            RestApiId: !Ref MyApi
+
+  GetAcceptedFriendsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: friends/get-accepted-friends/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Events:
+        GetAcceptedFriends:
+          Type: Api
+          Properties:
+            Path: /friends/accepted
+            Method: get
+            RestApiId: !Ref MyApi
+
+  GetPendingFriendsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: friends/get-pending-friends/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Events:
+        GetPendingFriends:
+          Type: Api
+          Properties:
+            Path: /friends/pending
+            Method: get
+            RestApiId: !Ref MyApi
+
+  GetFriendRequestsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: friends/get-friend-requests/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Events:
+        GetFriendRequests:
+          Type: Api
+          Properties:
+            Path: /friends/requests
+            Method: get
+            RestApiId: !Ref MyApi
+
+  RejectFriendFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: friends/reject-friend/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Events:
+        RejectFriend:
+          Type: Api
+          Properties:
+            Path: /friends/reject
+            Method: post
+            RestApiId: !Ref MyApi
+
+  CancelFriendRequestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: friends/cancel-friend-request/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Events:
+        CancelFriendRequest:
+          Type: Api
+          Properties:
+            Path: /friends/cancel
+            Method: post
+            RestApiId: !Ref MyApi
+
+  GetFriendsActiveClothesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: friends/get-friends-active-clothes/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+          CLOTHES_TABLE: !Ref UserClotheItemsTable
+          IMAGES_BUCKET: !Ref ClotheImagesBucket
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserClotheItemsTable
+        - S3ReadPolicy:
+            BucketName: !Ref ClotheImagesBucket
+      Events:
+        GetFriendsActiveClothes:
+          Type: Api
+          Properties:
+            Path: /friends/active-clothes
+            Method: get
+            RestApiId: !Ref MyApi
+
+  # WebSocket Connections Table
+  WebSocketConnectionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ClosetSenseiWebSocketConnections
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: connectionId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: connectionId
+          KeyType: HASH
+
+  # Chat Histories Table
+  ChatHistoriesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ClosetSenseiChatHistories
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: chatId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: chatId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: UserIdIndex
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  # Chat Messages Table
+  ChatMessagesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ClosetSenseiChatMessages
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: messageId
+          AttributeType: S
+        - AttributeName: chatId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: messageId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: ChatIdIndex
+          KeySchema:
+            - AttributeName: chatId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  # WebSocket API
+  ChatWebSocketApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: ClosetSenseiChatWebSocket
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: $request.body.action
+
+  ChatWebSocketStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref ChatWebSocketApi
+      StageName: prod
+      AutoDeploy: true
+
+  # WebSocket Connect Lambda
+  WebSocketConnectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: bedrock-chat/connect/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          CONNECTIONS_TABLE: !Ref WebSocketConnectionsTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref WebSocketConnectionsTable
+
+  WebSocketConnectPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref WebSocketConnectFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ChatWebSocketApi}/*
+
+  WebSocketConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ChatWebSocketApi
+      RouteKey: $connect
+      Target: !Sub integrations/${WebSocketConnectIntegration}
+
+  WebSocketConnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ChatWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebSocketConnectFunction.Arn}/invocations
+
+  # WebSocket Disconnect Lambda
+  WebSocketDisconnectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: bedrock-chat/disconnect/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          CONNECTIONS_TABLE: !Ref WebSocketConnectionsTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref WebSocketConnectionsTable
+
+  WebSocketDisconnectPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref WebSocketDisconnectFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ChatWebSocketApi}/*
+
+  WebSocketDisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ChatWebSocketApi
+      RouteKey: $disconnect
+      Target: !Sub integrations/${WebSocketDisconnectIntegration}
+
+  WebSocketDisconnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ChatWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebSocketDisconnectFunction.Arn}/invocations
+
+  # WebSocket Message Lambda
+  WebSocketMessageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: bedrock-chat/message/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Timeout: 60
+      MemorySize: 256
+      Environment:
+        Variables:
+          CHAT_HISTORIES_TABLE: !Ref ChatHistoriesTable
+          CHAT_MESSAGES_TABLE: !Ref ChatMessagesTable
+          CHAT_SESSIONS_TABLE: !Ref ChatHistoriesTable
+          CLOTHE_ITEMS_TABLE: !Ref UserClotheItemsTable
+          CONNECTIONS_TABLE: !Ref WebSocketConnectionsTable
+          BEDROCK_AGENT_ID: ZDHXX8ZB6B
+          BEDROCK_AGENT_ALIAS_ID: 1NC4DMFPMI
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatHistoriesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatMessagesTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref UserClotheItemsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref WebSocketConnectionsTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - execute-api:ManageConnections
+              Resource: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ChatWebSocketApi}/*
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeAgent
+              Resource: !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:agent-alias/*/*
+
+  WebSocketMessagePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref WebSocketMessageFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ChatWebSocketApi}/*
+
+  WebSocketMessageRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ChatWebSocketApi
+      RouteKey: sendMessage
+      Target: !Sub integrations/${WebSocketMessageIntegration}
+
+  WebSocketMessageIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ChatWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebSocketMessageFunction.Arn}/invocations
+
+  # Get Chat Histories Lambda (REST API)
+  GetChatHistoriesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: bedrock-chat/get-histories/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          CHAT_HISTORIES_TABLE: !Ref ChatHistoriesTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatHistoriesTable
+      Events:
+        GetHistories:
+          Type: Api
+          Properties:
+            Path: /chat/histories
+            Method: get
+            RestApiId: !Ref MyApi
+
+  # Get Chat Messages Lambda (REST API)
+  GetChatMessagesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: bedrock-chat/get-messages/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          CHAT_HISTORIES_TABLE: !Ref ChatHistoriesTable
+          CHAT_MESSAGES_TABLE: !Ref ChatMessagesTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatHistoriesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatMessagesTable
+      Events:
+        GetMessages:
+          Type: Api
+          Properties:
+            Path: /chat/{chatId}/messages
+            Method: get
+            RestApiId: !Ref MyApi
+
+  # Delete Chat Lambda (REST API)
+  DeleteChatFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: bedrock-chat/delete-chat/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          CHAT_HISTORIES_TABLE: !Ref ChatHistoriesTable
+          CHAT_MESSAGES_TABLE: !Ref ChatMessagesTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatHistoriesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatMessagesTable
+      Events:
+        DeleteChat:
+          Type: Api
+          Properties:
+            Path: /chat/{chatId}
+            Method: delete
+            RestApiId: !Ref MyApi
+
+  # Get Virtual Closet Action (for Bedrock Agent)
+  GetVirtualClosetActionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: bedrock-chat/get-virtual-closet-action/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          CLOTHE_ITEMS_TABLE: !Ref UserClotheItemsTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UserClotheItemsTable
+
+  # Permission for Bedrock Agent to invoke the GetVirtualClosetAction Lambda
+  GetVirtualClosetActionBedrockPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref GetVirtualClosetActionFunction
+      Action: lambda:InvokeFunction
+      Principal: bedrock.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:agent/ZDHXX8ZB6B
+
+Outputs:
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
+    Export:
+      Name: ClosetSenseiApiEndpoint
+
+  UsersTableName:
+    Description: DynamoDB Users Table Name
+    Value: !Ref UsersTable
+
+  ClotheItemsTableName:
+    Description: DynamoDB ClotheItems Table Name
+    Value: !Ref UserClotheItemsTable
+
+  ImagesBucketName:
+    Description: S3 Images Bucket Name
+    Value: !Ref ClotheImagesBucket
+
+  SignUpFunctionArn:
+    Description: SignUp Lambda ARN
+    Value: !GetAtt SignUpFunction.Arn
+
+  LoginFunctionArn:
+    Description: Login Lambda ARN
+    Value: !GetAtt LoginFunction.Arn
+
+  GetUserFunctionArn:
+    Description: GetUser Lambda ARN
+    Value: !GetAtt GetUserFunction.Arn
+
+  GetAllClothesFunctionArn:
+    Description: GetAllClothes Lambda ARN
+    Value: !GetAtt GetAllClothesFunction.Arn
+
+  GetClotheByIdFunctionArn:
+    Description: GetClotheById Lambda ARN
+    Value: !GetAtt GetClotheByIdFunction.Arn
+
+  MLPredictFunctionArn:
+    Description: ML Prediction Lambda ARN
+    Value: !GetAtt MLPredictFunction.Arn
+
+  # Friends Function Outputs
+  AddFriendFunctionArn:
+    Description: AddFriend Lambda ARN
+    Value: !GetAtt AddFriendFunction.Arn
+
+  AcceptFriendFunctionArn:
+    Description: AcceptFriend Lambda ARN
+    Value: !GetAtt AcceptFriendFunction.Arn
+
+  RejectFriendFunctionArn:
+    Description: RejectFriend Lambda ARN
+    Value: !GetAtt RejectFriendFunction.Arn
+
+  CancelFriendRequestFunctionArn:
+    Description: CancelFriendRequest Lambda ARN
+    Value: !GetAtt CancelFriendRequestFunction.Arn
+
+  GetAcceptedFriendsFunctionArn:
+    Description: GetAcceptedFriends Lambda ARN
+    Value: !GetAtt GetAcceptedFriendsFunction.Arn
+
+  GetPendingFriendsFunctionArn:
+    Description: GetPendingFriends Lambda ARN
+    Value: !GetAtt GetPendingFriendsFunction.Arn
+
+  GetFriendRequestsFunctionArn:
+    Description: GetFriendRequests Lambda ARN
+    Value: !GetAtt GetFriendRequestsFunction.Arn
+
+  # Chat WebSocket URL Output
+  ChatWebSocketUrl:
+    Description: WebSocket API URL for chat
+    Value: !Sub wss://${ChatWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/prod
+    Export:
+      Name: ClosetSenseiChatWebSocketUrl
+
+  GetVirtualClosetActionFunctionArn:
+    Description: ARN of the GetVirtualClosetAction Lambda (needed for Bedrock Agent setup)
+    Value: !GetAtt GetVirtualClosetActionFunction.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-GetVirtualClosetActionFunctionArn

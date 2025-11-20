@@ -1,0 +1,21 @@
+node_modules
+.aws-sam/build/*/node_modules
+.aws-sam/cache
+.aws-sam/deps
+.aws-sam/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+
+# ML Models (large files - don't commit to git)
+ml-predict/models/*.pth
+ml-predict/models/*.pkl
+
+# Docker
+.dockerignore

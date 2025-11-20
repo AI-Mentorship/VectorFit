@@ -1,0 +1,17 @@
+{
+  "name": "get-friends-active-clothes",
+  "version": "1.0.0",
+  "description": "Lambda function to get all accepted friends' active clothing items",
+  "type": "module",
+  "main": "app.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.515.0",
+    "@aws-sdk/lib-dynamodb": "^3.515.0",
+    "@aws-sdk/client-s3": "^3.515.0",
+    "@aws-sdk/s3-request-presigner": "^3.515.0",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

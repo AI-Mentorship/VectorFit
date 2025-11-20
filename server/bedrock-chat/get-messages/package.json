@@ -1,0 +1,15 @@
+{
+  "name": "get-chat-messages",
+  "version": "1.0.0",
+  "description": "Get chat messages handler",
+  "type": "module",
+  "main": "app.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.709.0",
+    "@aws-sdk/lib-dynamodb": "^3.709.0",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

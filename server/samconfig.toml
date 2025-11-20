@@ -1,0 +1,12 @@
+version = 0.1
+
+[default.global.parameters]
+stack_name = "Closet-Sensei-AWS-Backend"
+region = "us-east-1"
+
+[default.sync.parameters]
+template_file = "c:\\Tejas_Projects\\SuperSecret\\server\\template.yaml"
+dependency_layer = false
+watch = true
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-lke4ynv3ihor"
+image_repository = "807467870594.dkr.ecr.us-east-1.amazonaws.com/closet-sensei-ecr-repo"
